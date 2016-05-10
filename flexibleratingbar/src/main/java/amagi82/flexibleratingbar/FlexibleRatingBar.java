@@ -50,7 +50,6 @@ public class FlexibleRatingBar extends RatingBar {
     private float interiorAngleModifier = 2.2F;
     private final float dp = getResources().getDisplayMetrics().density;
     private float starSize;
-    private Bitmap colorsJoined;
 
 
     public FlexibleRatingBar(Context context) {
@@ -185,6 +184,7 @@ public class FlexibleRatingBar extends RatingBar {
         //Bitmap of width 0 will cause a crash. Make sure it's a positive number.
         int ratingWidth = (int) (getRating() * getWidth() / getNumStars());
 
+        final Bitmap colorsJoined;
         if (ratingWidth <= 0 || getWidth() - ratingWidth <= 0) {
             colorsJoined = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
             colorsJoined.eraseColor(ratingWidth <= 0 ? colorOff : colorOn);
@@ -195,12 +195,16 @@ public class FlexibleRatingBar extends RatingBar {
             colorRight.eraseColor(colorOff);
             colorsJoined = combineBitmaps(colorLeft, colorRight);
         }
-        return new BitmapShader(colorsJoined, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+        try {
+            return new BitmapShader(colorsJoined, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+        } finally {
+            colorsJoined.recycle();
+        }
     }
 
     //Combine two bitmaps side by side for use as a BitmapShader
     private Bitmap combineBitmaps(Bitmap leftBitmap, Bitmap rightBitmap) {
-        colorsJoined = Bitmap.createBitmap(leftBitmap.getWidth() + rightBitmap.getWidth(), leftBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        Bitmap colorsJoined = Bitmap.createBitmap(leftBitmap.getWidth() + rightBitmap.getWidth(), leftBitmap.getHeight(), Bitmap.Config.ARGB_8888);
 
         Canvas comboImage = new Canvas(colorsJoined);
         comboImage.drawBitmap(leftBitmap, 0f, 0f, null);
